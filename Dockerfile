@@ -1,11 +1,11 @@
 # Build stage
-FROM golang:1.22-alpine AS builder
+FROM golang:1.22-alpine3.19 AS builder
 
 # Set working directory
 WORKDIR /app
 
 # Install necessary build tools
-RUN apk add --no-cache make git
+RUN apk add --no-cache make git gcc musl-dev
 
 # Copy go.mod and go.sum files
 COPY go.mod go.sum ./
@@ -17,15 +17,15 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN make build
+RUN CGO_ENABLED=0 GOOS=linux go build -o build/loand ./cmd/loand
 
 # Final stage
-FROM alpine:latest
+FROM alpine:3.19
 
 WORKDIR /root
 
 # Install necessary runtime dependencies
-RUN apk add --no-cache bash curl jq
+RUN apk add --no-cache ca-certificates jq curl bash
 
 # Copy the binary and start script
 COPY --from=builder /app/build/loand /usr/local/bin/
@@ -37,8 +37,13 @@ RUN chmod +x /root/start.sh
 # Create directory for chain data
 RUN mkdir -p /root/.loan
 
-# Expose necessary ports (adjust as needed)
+# Expose necessary ports
 EXPOSE 26656 26657 1317 9090
+
+# Set environment variables
+ENV MONIKER="loan-validator" \
+    CHAIN_ID="loan-1" \
+    MINIMUM_GAS_PRICES="0stake"
 
 # Use start script as entrypoint
 ENTRYPOINT ["/root/start.sh"] 

@@ -1,0 +1,10 @@
+# P2P Configuration
+[p2p]
+laddr = "tcp://0.0.0.0:26656"
+external_address = ""
+seeds = ""
+persistent_peers = ""
+addr_book_strict = false
+allow_duplicate_ip = true
+handshake_timeout = "20s"
+dial_timeout = "3s"

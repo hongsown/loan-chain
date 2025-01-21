@@ -6,7 +6,7 @@ services:
     plan: free # chọn plan phù hợp
     dockerfilePath: ./Dockerfile
     numInstances: 1
-    healthCheckPath: /health
+    healthCheckPath: /cosmos/base/tendermint/v1beta1/node_info
     envVars:
       - key: MONIKER
         value: "loan-validator"
@@ -21,4 +21,13 @@ services:
     disk:
       name: chain-data
       mountPath: /root/.loan
-      sizeGB: 10 
+      sizeGB: 10
+    ports:
+      - port: 26656
+        protocol: TCP
+      - port: 26657
+        protocol: TCP
+      - port: 1317
+        protocol: TCP
+      - port: 9090
+        protocol: TCP 
