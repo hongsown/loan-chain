@@ -3,7 +3,7 @@ services:
     name: loan-chain
     env: docker
     region: singapore # hoặc region phù hợp với bạn
-    plan: standard # chọn plan phù hợp
+    plan: free # chọn plan phù hợp
     dockerfilePath: ./Dockerfile
     numInstances: 1
     healthCheckPath: /health
@@ -12,7 +12,13 @@ services:
         value: "loan-validator"
       - key: CHAIN_ID
         value: "loan-1"
+      - key: MINIMUM_GAS_PRICES
+        value: "0stake"  # Thêm biến môi trường này
       - key: SEEDS
         value: "" # Thêm seeds nếu cần
       - key: PERSISTENT_PEERS
-        value: "" # Thêm persistent peers nếu cần 
+        value: "" # Thêm persistent peers nếu cần
+    disk:
+      name: chain-data
+      mountPath: /root/.loan
+      sizeGB: 10 
