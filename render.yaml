@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: loan-chain
+    env: docker
+    region: singapore # hoặc region phù hợp với bạn
+    plan: standard # chọn plan phù hợp
+    dockerfilePath: ./Dockerfile
+    numInstances: 1
+    healthCheckPath: /health
+    envVars:
+      - key: MONIKER
+        value: "loan-validator"
+      - key: CHAIN_ID
+        value: "loan-1"
+      - key: SEEDS
+        value: "" # Thêm seeds nếu cần
+      - key: PERSISTENT_PEERS
+        value: "" # Thêm persistent peers nếu cần 
