@@ -79,6 +79,7 @@ import (
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"loan/docs"
+	"cosmossdk.io/math"
 )
 
 const (
@@ -155,6 +156,9 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	// Set default power reduction thấp hơn
+	sdk.DefaultPowerReduction = math.NewInt(100000)
 }
 
 // getGovProposalHandlers return the chain proposal handlers.

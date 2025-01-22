@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Set default values for environment variables
 MONIKER=${MONIKER:-"loan-validator"}
@@ -18,52 +18,39 @@ if [ ! -d "$HOME/.loan/config" ]; then
     echo "Creating validator key..."
     echo "password" | loand keys add validator --keyring-backend test
     
-    # Modify genesis.json directly
-    echo "Modifying genesis.json..."
-    VALIDATOR_PUBKEY=$(loand tendermint show-validator)
+    # Get validator address
     VALIDATOR_ADDRESS=$(echo "password" | loand keys show validator -a --keyring-backend test)
     
-    # Update genesis.json with validator info
-    jq ".app_state.auth.accounts += [{
-      \"@type\": \"/cosmos.auth.v1beta1.BaseAccount\",
-      \"address\": \"$VALIDATOR_ADDRESS\",
-      \"pub_key\": null,
-      \"account_number\": \"0\",
-      \"sequence\": \"0\"
-    }]" $HOME/.loan/config/genesis.json > temp.json && mv temp.json $HOME/.loan/config/genesis.json
+    # Add genesis account
+    loand genesis add-genesis-account $VALIDATOR_ADDRESS 1000000000000000stake
     
-    jq ".app_state.bank.balances += [{
-      \"address\": \"$VALIDATOR_ADDRESS\",
-      \"coins\": [{
-        \"denom\": \"stake\",
-        \"amount\": \"100000000\"
-      }]
-    }]" $HOME/.loan/config/genesis.json > temp.json && mv temp.json $HOME/.loan/config/genesis.json
+    # Modify genesis.json
+    jq '.app_state.staking.params.bond_denom = "stake"' $HOME/.loan/config/genesis.json > temp.json && mv temp.json $HOME/.loan/config/genesis.json
+    jq '.app_state.staking.params.max_validators = 100' $HOME/.loan/config/genesis.json > temp.json && mv temp.json $HOME/.loan/config/genesis.json
+    jq '.app_state.staking.params.min_commission_rate = "0.000000000000000000"' $HOME/.loan/config/genesis.json > temp.json && mv temp.json $HOME/.loan/config/genesis.json
+    jq '.app_state.crisis.constant_fee.denom = "stake"' $HOME/.loan/config/genesis.json > temp.json && mv temp.json $HOME/.loan/config/genesis.json
+    jq '.app_state.gov.params.min_deposit[0].denom = "stake"' $HOME/.loan/config/genesis.json > temp.json && mv temp.json $HOME/.loan/config/genesis.json
+    jq '.app_state.mint.params.mint_denom = "stake"' $HOME/.loan/config/genesis.json > temp.json && mv temp.json $HOME/.loan/config/genesis.json
     
-    # Create validator transaction
-    echo "Creating validator transaction..."
-    loand tx staking create-validator \
-      --amount=70000000stake \
-      --pubkey=$VALIDATOR_PUBKEY \
-      --moniker="$MONIKER" \
-      --chain-id="$CHAIN_ID" \
-      --commission-rate="0.10" \
-      --commission-max-rate="0.20" \
-      --commission-max-change-rate="0.01" \
-      --min-self-delegation="1" \
-      --from=validator \
-      --keyring-backend=test \
-      --broadcast-mode=block \
-      -y
+    # Create gentx
+    loand genesis gentx validator 700000000stake \
+        --chain-id="$CHAIN_ID" \
+        --moniker="$MONIKER" \
+        --commission-rate="0.10" \
+        --commission-max-rate="0.20" \
+        --commission-max-change-rate="0.01" \
+        --min-self-delegation="1" \
+        --keyring-backend=test \
+        --yes
+    
+    # Collect gentxs
+    loand genesis collect-gentxs
 fi
 
 # Start the chain
 exec loand start \
     --rpc.laddr tcp://0.0.0.0:26657 \
-    --p2p.laddr tcp://0.0.0.0:26656 \
-    --p2p.external-address $(curl -s ifconfig.me):26656 \
-    --p2p.seed_mode=false \
-    --api.enable \
-    --api.address tcp://0.0.0.0:1317 \
     --grpc.address 0.0.0.0:9090 \
-    --minimum-gas-prices $MINIMUM_GAS_PRICES
+    --address tcp://0.0.0.0:26656 \
+    --minimum-gas-prices 0stake \
+    --pruning nothing

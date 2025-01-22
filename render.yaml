@@ -14,6 +14,12 @@ services:
         value: "loan-1"
       - key: MINIMUM_GAS_PRICES
         value: "0stake"  # Thêm biến môi trường này
+      - key: VALIDATOR_KEY_NAME
+        value: "val"
+      - key: VALIDATOR_STAKE_AMOUNT
+        value: "900000000000000000000000000stake" # Tăng số lượng stake lên cực kỳ lớn
+      - key: UNSAFE_SKIP_BACKUP
+        value: "true"
       - key: SEEDS
         value: "" # Thêm seeds nếu cần
       - key: PERSISTENT_PEERS
