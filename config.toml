@@ -15,3 +15,13 @@ laddr = "tcp://0.0.0.0:26657"
 cors_allowed_origins = ["*"]
 cors_allowed_methods = ["HEAD", "GET", "POST"]
 cors_allowed_headers = ["Origin", "Accept", "Content-Type", "X-Requested-With", "X-Server-Time"]
+
+[api]
+# Enable defines if the API server should be enabled.
+enable = true
+# Swagger defines if swagger documentation should be exposed.
+swagger = true
+# Address defines the API server to listen on.
+address = "tcp://0.0.0.0:1317"
+# Enable defines if the gRPC-Web server should be enabled.
+enable-unsafe-cors = true
